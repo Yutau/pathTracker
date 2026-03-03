@@ -7,50 +7,67 @@ type RecordingControlsProps = {
 };
 
 export function RecordingControls({ isRecording, onStart, onStop }: RecordingControlsProps): JSX.Element {
+  const onPressMain = isRecording ? onStop : onStart;
+
   return (
-    <View style={styles.controlsRow}>
+    <View style={styles.controlsWrap}>
       <Pressable
-        onPress={onStart}
-        disabled={isRecording}
-        style={[styles.controlButton, styles.startButton, isRecording && styles.controlButtonDisabled]}
+        onPress={onPressMain}
+        style={[styles.mainButton, isRecording && styles.mainButtonActiveRecording]}
       >
-        <Text style={styles.controlButtonText}>Start Recording</Text>
-      </Pressable>
-      <Pressable
-        onPress={onStop}
-        disabled={!isRecording}
-        style={[styles.controlButton, styles.stopButton, !isRecording && styles.controlButtonDisabled]}
-      >
-        <Text style={styles.controlButtonText}>Stop</Text>
+        <View style={styles.playCircle}>
+          <Text style={styles.playIcon}>{isRecording ? '■' : '▶'}</Text>
+        </View>
+        <Text style={styles.mainButtonText}>{isRecording ? 'Stop Recording' : 'Start Recording'}</Text>
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  controlsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 14,
-  },
-  controlButton: {
-    flex: 1,
-    borderRadius: 12,
-    paddingVertical: 11,
+  controlsWrap: {
     alignItems: 'center',
   },
-  startButton: {
-    backgroundColor: '#0f766e',
+  mainButton: {
+    minWidth: 260,
+    maxWidth: 380,
+    width: '78%',
+    borderRadius: 999,
+    paddingVertical: 15,
+    paddingHorizontal: 22,
+    backgroundColor: '#ff8a00',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 9,
+    shadowColor: '#ff8a00',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.34,
+    shadowRadius: 15,
+    elevation: 9,
   },
-  stopButton: {
-    backgroundColor: '#9f1239',
+  mainButtonActiveRecording: {
+    backgroundColor: '#dc2626',
+    shadowColor: '#dc2626',
   },
-  controlButtonDisabled: {
-    opacity: 0.4,
+  playCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.23)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  controlButtonText: {
-    color: '#ffffff',
+  playIcon: {
+    color: '#fff8ec',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  mainButtonText: {
+    color: '#fff8ec',
+    fontSize: 18,
     fontWeight: '700',
     letterSpacing: 0.2,
+    includeFontPadding: false,
   },
 });

@@ -10,7 +10,6 @@ type PathMapCardProps = {
   lineColor: string;
   permissionGranted: boolean;
   isLoading: boolean;
-  statusMessage: string;
 };
 
 export function PathMapCard({
@@ -18,7 +17,6 @@ export function PathMapCard({
   lineColor,
   permissionGranted,
   isLoading,
-  statusMessage,
 }: PathMapCardProps): JSX.Element {
   const mapRef = useRef<MapView | null>(null);
 
@@ -41,7 +39,7 @@ export function PathMapCard({
     }
 
     mapRef.current.fitToCoordinates(coordinates, {
-      edgePadding: { top: 80, right: 40, bottom: 80, left: 40 },
+      edgePadding: { top: 170, right: 34, bottom: 185, left: 34 },
       animated: true,
     });
   }, [coordinates]);
@@ -64,13 +62,9 @@ export function PathMapCard({
         ) : null}
       </MapView>
 
-      <View style={styles.statusChip}>
-        <Text style={styles.statusText}>{statusMessage}</Text>
-      </View>
-
       {isLoading ? (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#0f766e" />
+          <ActivityIndicator size="large" color="#fb923c" />
           <Text style={styles.loadingText}>Loading local paths...</Text>
         </View>
       ) : null}
@@ -80,38 +74,18 @@ export function PathMapCard({
 
 const styles = StyleSheet.create({
   mapCard: {
-    marginTop: 14,
     flex: 1,
-    borderRadius: 18,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    backgroundColor: '#ffffff',
-  },
-  statusChip: {
-    position: 'absolute',
-    left: 10,
-    right: 10,
-    bottom: 12,
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    backgroundColor: 'rgba(2, 6, 23, 0.75)',
-  },
-  statusText: {
-    color: '#e2e8f0',
-    fontSize: 12,
-    fontFamily: 'monospace',
+    backgroundColor: '#0b1220',
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: 'rgba(2, 6, 23, 0.35)',
     gap: 10,
   },
   loadingText: {
-    color: '#0f172a',
+    color: '#f8fafc',
     fontWeight: '600',
   },
 });

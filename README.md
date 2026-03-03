@@ -40,6 +40,27 @@ Then use Expo:
 - Press `a` for Android emulator
 - Or scan QR code with Expo Go on a real device
 
+## Local Debug Hot Reload (Fast Refresh)
+
+This project uses Expo's Fast Refresh for local debugging hot updates.
+
+```bash
+npm install
+npm run dev
+```
+
+Recommended local debug commands:
+- `npm run dev`: default local hot update mode (clear cache).
+- `npm run dev:android`: open Android emulator + hot update.
+- `npm run dev:ios`: open iOS simulator + hot update.
+- `npm run dev:tunnel`: use tunnel mode if LAN connection is unstable.
+
+Fast Refresh checklist:
+- Ensure app is connected to Metro dev server.
+- Open developer menu and confirm `Fast Refresh` is enabled.
+- Save any `.tsx/.ts` file and UI should update automatically.
+- If refresh gets stuck, press `r` in terminal to reload or restart `npm run dev`.
+
 ## Notes
 
 - Location permission is required for recording.

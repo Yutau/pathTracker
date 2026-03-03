@@ -1,15 +1,12 @@
 import { ScrollView, StyleSheet } from 'react-native';
 
 import type { ActiveView, DateMenuItem } from '../types/path';
-import { formatShortDate } from '../utils/date';
 import { MenuButton } from './MenuButton';
 
 type PathMenuProps = {
   activeView: ActiveView;
-  todayDate: Date;
   todayDateKey: string;
   previousDayMenus: DateMenuItem[];
-  olderDateCount: number;
   onSelectFootprint: () => void;
   onSelectDate: (dateKey: string, title: string) => void;
   onPressMore: () => void;
@@ -17,10 +14,8 @@ type PathMenuProps = {
 
 export function PathMenu({
   activeView,
-  todayDate,
   todayDateKey,
   previousDayMenus,
-  olderDateCount,
   onSelectFootprint,
   onSelectDate,
   onPressMore,
@@ -35,7 +30,7 @@ export function PathMenu({
       <MenuButton label="Footprint" active={activeView.type === 'footprint'} onPress={onSelectFootprint} />
 
       <MenuButton
-        label={`Today · ${formatShortDate(todayDate)}`}
+        label="Today"
         active={activeView.type === 'date' && activeView.dateKey === todayDateKey}
         onPress={() => onSelectDate(todayDateKey, 'Today')}
       />
@@ -49,23 +44,19 @@ export function PathMenu({
         />
       ))}
 
-      <MenuButton
-        label={olderDateCount > 0 ? `More (${olderDateCount})` : 'More'}
-        active={false}
-        onPress={onPressMore}
-      />
+      <MenuButton label="More" active={false} onPress={onPressMore} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   menuScroll: {
-    marginTop: 14,
-    maxHeight: 46,
+    maxHeight: 40,
   },
   menuRow: {
-    paddingRight: 6,
+    paddingRight: 14,
     alignItems: 'center',
-    gap: 8,
+    gap: 14,
+    paddingVertical: 2,
   },
 });

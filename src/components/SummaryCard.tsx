@@ -7,14 +7,22 @@ type SummaryCardProps = {
   viewTitle: string;
   displayedPoints: PathPoint[];
   summaryDistance: number;
+  statusMessage: string;
 };
 
-export function SummaryCard({ viewTitle, displayedPoints, summaryDistance }: SummaryCardProps): JSX.Element {
+export function SummaryCard({
+  viewTitle,
+  displayedPoints,
+  summaryDistance,
+  statusMessage,
+}: SummaryCardProps): JSX.Element {
   return (
     <View style={styles.summaryCard}>
-      <Text style={styles.summaryTitle}>{viewTitle}</Text>
+      <Text style={styles.summaryTitle} numberOfLines={1}>
+        {viewTitle}
+      </Text>
       {displayedPoints.length === 0 ? (
-        <Text style={styles.summaryBody}>No recorded points for this view yet.</Text>
+        <Text style={styles.summaryBody}>No recorded points for this view yet</Text>
       ) : (
         <View style={styles.summaryStats}>
           <Text style={styles.summaryBody}>
@@ -25,42 +33,44 @@ export function SummaryCard({ viewTitle, displayedPoints, summaryDistance }: Sum
           </Text>
         </View>
       )}
-      <Text style={styles.summaryHint}>Location access must be allowed while the app is in use.</Text>
+      <Text style={styles.summaryHint} numberOfLines={1}>
+        {statusMessage}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   summaryCard: {
-    marginTop: 12,
-    borderRadius: 14,
-    padding: 12,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    backgroundColor: '#ffffffee',
+    borderColor: 'rgba(226, 232, 240, 0.3)',
+    backgroundColor: 'rgba(15, 23, 42, 0.44)',
   },
   summaryTitle: {
     fontSize: 15,
-    color: '#0f172a',
+    color: '#f8fafc',
     fontWeight: '700',
   },
   summaryStats: {
-    marginTop: 6,
+    marginTop: 7,
     gap: 2,
   },
   summaryBody: {
-    marginTop: 6,
-    color: '#1f2937',
-    fontSize: 14,
+    marginTop: 5,
+    color: '#e2e8f0',
+    fontSize: 13,
   },
   summaryMeta: {
-    color: '#475569',
-    fontSize: 12,
+    color: '#cbd5e1',
+    fontSize: 11,
     fontFamily: 'monospace',
   },
   summaryHint: {
     marginTop: 8,
-    color: '#64748b',
-    fontSize: 12,
+    color: '#cbd5e1',
+    fontSize: 11,
   },
 });

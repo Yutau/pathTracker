@@ -5,7 +5,6 @@ import { MoreDatesModal } from './src/components/MoreDatesModal';
 import { PathMapCard } from './src/components/PathMapCard';
 import { PathMenu } from './src/components/PathMenu';
 import { RecordingControls } from './src/components/RecordingControls';
-import { SummaryCard } from './src/components/SummaryCard';
 import { PREVIOUS_DAY_OFFSETS } from './src/constants/path';
 import { usePathRecorder } from './src/hooks/usePathRecorder';
 import type { ActiveView, DateMenuItem } from './src/types/path';
@@ -13,12 +12,10 @@ import {
   dateKeyFromDate,
   dateKeyFromTimestamp,
   dayDifferenceFromToday,
-  formatLongDate,
-  formatShortDate,
   getDateByOffset,
   getRelativeTitle,
 } from './src/utils/date';
-import { hashColorByDate, sortPointsChronological, toCoordinate, totalDistanceKm } from './src/utils/path';
+import { hashColorByDate, sortPointsChronological, toCoordinate } from './src/utils/path';
 
 export default function App(): JSX.Element {
   const todayDate = getDateByOffset(0);
@@ -29,7 +26,6 @@ export default function App(): JSX.Element {
     isLoading,
     isRecording,
     permissionState,
-    statusMessage,
     startRecording,
     stopRecording,
   } = usePathRecorder();
@@ -46,10 +42,11 @@ export default function App(): JSX.Element {
       PREVIOUS_DAY_OFFSETS.map((offset) => {
         const date = getDateByOffset(offset);
         const title = getRelativeTitle(offset);
+        const shortLabel = offset === 1 ? 'Yesterday' : `${offset} day ago`;
         return {
           dateKey: dateKeyFromDate(date),
           title,
-          label: `${title} · ${formatShortDate(date)}`,
+          label: shortLabel,
         };
       }),
     [],
@@ -80,12 +77,6 @@ export default function App(): JSX.Element {
   const coordinates = useMemo(() => displayedPoints.map(toCoordinate), [displayedPoints]);
 
   const lineColor = activeView.type === 'footprint' ? '#16a34a' : hashColorByDate(activeView.dateKey);
-  const summaryDistance = totalDistanceKm(displayedPoints);
-
-  const viewTitle =
-    activeView.type === 'footprint'
-      ? 'Footprint · All Historical Paths'
-      : `${activeView.title} · ${formatLongDate(activeView.dateKey)}`;
 
   const openDateView = (dateKey: string, title: string): void => {
     setActiveView({ type: 'date', dateKey, title });
@@ -93,40 +84,41 @@ export default function App(): JSX.Element {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.backgroundCircleOne} />
-      <View style={styles.backgroundCircleTwo} />
-
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <View style={styles.screen}>
-        <Text style={styles.title}>Path Tracker</Text>
-        <Text style={styles.subtitle}>Record daily routes on iOS and Android</Text>
-
-        <RecordingControls isRecording={isRecording} onStart={startRecording} onStop={stopRecording} />
-
-        <PathMenu
-          activeView={activeView}
-          todayDate={todayDate}
-          todayDateKey={todayDateKey}
-          previousDayMenus={previousDayMenus}
-          olderDateCount={olderDateKeys.length}
-          onSelectFootprint={() => setActiveView({ type: 'footprint' })}
-          onSelectDate={openDateView}
-          onPressMore={() => setIsMoreVisible(true)}
-        />
-
         <PathMapCard
           coordinates={coordinates}
           lineColor={lineColor}
           permissionGranted={permissionState === 'granted'}
           isLoading={isLoading}
-          statusMessage={statusMessage}
         />
 
-        <SummaryCard
-          viewTitle={viewTitle}
-          displayedPoints={displayedPoints}
-          summaryDistance={summaryDistance}
-        />
+        <View pointerEvents="none" style={styles.topShadePrimary} />
+        <View pointerEvents="none" style={styles.topShadeSecondary} />
+        <View pointerEvents="none" style={styles.bottomShadePrimary} />
+        <View pointerEvents="none" style={styles.bottomShadeSecondary} />
+
+        <View style={styles.overlay}>
+          <View style={styles.topBar}>
+            <View style={styles.brandRow}>
+              <Text style={styles.brandIcon}>➤</Text>
+              <Text style={styles.brandTitle}>PathTracker</Text>
+            </View>
+
+            <PathMenu
+              activeView={activeView}
+              todayDateKey={todayDateKey}
+              previousDayMenus={previousDayMenus}
+              onSelectFootprint={() => setActiveView({ type: 'footprint' })}
+              onSelectDate={openDateView}
+              onPressMore={() => setIsMoreVisible(true)}
+            />
+          </View>
+
+          <View style={styles.bottomBar}>
+            <RecordingControls isRecording={isRecording} onStart={startRecording} onStop={stopRecording} />
+          </View>
+        </View>
       </View>
 
       <MoreDatesModal
@@ -143,40 +135,72 @@ export default function App(): JSX.Element {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f3f7f6',
+    backgroundColor: '#050a12',
   },
   screen: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingBottom: 12,
+    backgroundColor: '#050a12',
   },
-  backgroundCircleOne: {
+  topShadePrimary: {
     position: 'absolute',
-    top: -90,
-    right: -60,
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: '#dbeafe',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 140,
+    backgroundColor: 'rgba(29, 78, 117, 0.46)',
   },
-  backgroundCircleTwo: {
+  topShadeSecondary: {
     position: 'absolute',
-    bottom: 80,
-    left: -70,
-    width: 210,
-    height: 210,
-    borderRadius: 105,
-    backgroundColor: '#dcfce7',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 260,
+    backgroundColor: 'rgba(15, 23, 42, 0.18)',
   },
-  title: {
-    marginTop: 10,
-    fontSize: 28,
-    color: '#0f172a',
+  bottomShadePrimary: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 180,
+    backgroundColor: 'rgba(2, 6, 23, 0.52)',
+  },
+  bottomShadeSecondary: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 320,
+    backgroundColor: 'rgba(2, 6, 23, 0.20)',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'space-between',
+    paddingTop: 54,
+    paddingBottom: 22,
+    paddingHorizontal: 18,
+  },
+  topBar: {
+    gap: 8,
+  },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+  },
+  brandIcon: {
+    color: '#f59e0b',
+    fontSize: 18,
     fontWeight: '700',
   },
-  subtitle: {
-    marginTop: 4,
-    fontSize: 14,
-    color: '#334155',
+  brandTitle: {
+    color: '#f1f5f9',
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  bottomBar: {
+    alignItems: 'center',
+    paddingBottom: 4,
   },
 });
