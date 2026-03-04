@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   menuItemTextInactive: {
-    color: 'rgba(0,0,0,0.28)',
+    color: 'rgba(15,23,42,0.62)',
   },
   menuItemTextActive: {
     color: '#ffffff',
