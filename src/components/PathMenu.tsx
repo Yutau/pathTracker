@@ -7,6 +7,7 @@ type PathMenuProps = {
   activeView: ActiveView;
   todayDateKey: string;
   previousDayMenus: DateMenuItem[];
+  olderDateCount: number;
   onSelectFootprint: () => void;
   onSelectDate: (dateKey: string, title: string) => void;
   onPressMore: () => void;
@@ -16,6 +17,7 @@ export function PathMenu({
   activeView,
   todayDateKey,
   previousDayMenus,
+  olderDateCount,
   onSelectFootprint,
   onSelectDate,
   onPressMore,
@@ -44,19 +46,19 @@ export function PathMenu({
         />
       ))}
 
-      <MenuButton label="More" active={false} onPress={onPressMore} />
+      {olderDateCount > 0 ? <MenuButton label="More" active={false} onPress={onPressMore} /> : null}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   menuScroll: {
-    maxHeight: 40,
+    maxHeight: 46,
   },
   menuRow: {
     paddingRight: 14,
     alignItems: 'center',
-    gap: 14,
+    gap: 20,
     paddingVertical: 2,
   },
 });

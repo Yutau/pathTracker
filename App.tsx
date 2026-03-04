@@ -1,34 +1,39 @@
 import { useMemo, useState } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { MoreDatesModal } from './src/components/MoreDatesModal';
 import { PathMapCard } from './src/components/PathMapCard';
-import { PathMenu } from './src/components/PathMenu';
 import { RecordingControls } from './src/components/RecordingControls';
-import { PREVIOUS_DAY_OFFSETS } from './src/constants/path';
 import { usePathRecorder } from './src/hooks/usePathRecorder';
-import type { ActiveView, DateMenuItem } from './src/types/path';
-import {
-  dateKeyFromDate,
-  dateKeyFromTimestamp,
-  dayDifferenceFromToday,
-  getDateByOffset,
-  getRelativeTitle,
-} from './src/utils/date';
+import type { ActiveView } from './src/types/path';
+import { dateKeyFromDate, dateKeyFromTimestamp, dayDifferenceFromToday, getDateByOffset } from './src/utils/date';
 import { hashColorByDate, sortPointsChronological, toCoordinate } from './src/utils/path';
 
+function viewLabel(activeView: ActiveView): string {
+  if (activeView.type === 'footprint') {
+    return 'Footprint';
+  }
+
+  const diff = dayDifferenceFromToday(activeView.dateKey);
+  if (diff <= 0) {
+    return 'Today';
+  }
+  if (diff === 1) {
+    return 'Yesterday';
+  }
+  return `${diff} days ago`;
+}
+
 export default function App(): JSX.Element {
+  const topInset = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 44;
+  const bottomInset = Platform.OS === 'ios' ? 28 : 16;
   const todayDate = getDateByOffset(0);
   const todayDateKey = dateKeyFromDate(todayDate);
+  const yesterdayDateKey = dateKeyFromDate(getDateByOffset(1));
+  const twoDaysAgoDateKey = dateKeyFromDate(getDateByOffset(2));
 
-  const {
-    points,
-    isLoading,
-    isRecording,
-    permissionState,
-    startRecording,
-    stopRecording,
-  } = usePathRecorder();
+  const { points, isLoading, isRecording, permissionState, startRecording, stopRecording } = usePathRecorder();
 
   const [activeView, setActiveView] = useState<ActiveView>({
     type: 'date',
@@ -36,21 +41,6 @@ export default function App(): JSX.Element {
     title: 'Today',
   });
   const [isMoreVisible, setIsMoreVisible] = useState(false);
-
-  const previousDayMenus = useMemo<DateMenuItem[]>(
-    () =>
-      PREVIOUS_DAY_OFFSETS.map((offset) => {
-        const date = getDateByOffset(offset);
-        const title = getRelativeTitle(offset);
-        const shortLabel = offset === 1 ? 'Yesterday' : `${offset} day ago`;
-        return {
-          dateKey: dateKeyFromDate(date),
-          title,
-          label: shortLabel,
-        };
-      }),
-    [],
-  );
 
   const allDateKeys = useMemo(() => {
     const unique = new Set<string>();
@@ -75,16 +65,12 @@ export default function App(): JSX.Element {
   }, [points, activeView]);
 
   const coordinates = useMemo(() => displayedPoints.map(toCoordinate), [displayedPoints]);
-
   const lineColor = activeView.type === 'footprint' ? '#16a34a' : hashColorByDate(activeView.dateKey);
 
-  const openDateView = (dateKey: string, title: string): void => {
-    setActiveView({ type: 'date', dateKey, title });
-  };
-
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+    <View style={styles.root}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+
       <View style={styles.screen}>
         <PathMapCard
           coordinates={coordinates}
@@ -93,32 +79,124 @@ export default function App(): JSX.Element {
           isLoading={isLoading}
         />
 
-        <View pointerEvents="none" style={styles.topShadePrimary} />
-        <View pointerEvents="none" style={styles.topShadeSecondary} />
-        <View pointerEvents="none" style={styles.bottomShadePrimary} />
-        <View pointerEvents="none" style={styles.bottomShadeSecondary} />
-
-        <View style={styles.overlay}>
-          <View style={styles.topBar}>
-            <View style={styles.brandRow}>
-              <Text style={styles.brandIcon}>➤</Text>
-              <Text style={styles.brandTitle}>PathTracker</Text>
+        <View style={[styles.header, { paddingTop: topInset + 16 }]}>
+          <View style={styles.headerLeft}>
+            <View style={styles.appIcon}>
+              <Text style={styles.appIconArrow}>➤</Text>
             </View>
-
-            <PathMenu
-              activeView={activeView}
-              todayDateKey={todayDateKey}
-              previousDayMenus={previousDayMenus}
-              onSelectFootprint={() => setActiveView({ type: 'footprint' })}
-              onSelectDate={openDateView}
-              onPressMore={() => setIsMoreVisible(true)}
-            />
+            <Text style={styles.appTitle}>PathTracker</Text>
           </View>
-
-          <View style={styles.bottomBar}>
-            <RecordingControls isRecording={isRecording} onStart={startRecording} onStop={stopRecording} />
+          <View style={styles.headerRight}>
+            <Pressable
+              onPress={() => setActiveView({ type: 'footprint' })}
+              style={[
+                styles.headerBtn,
+                activeView.type === 'footprint' ? styles.headerBtnActive : undefined,
+              ]}
+            >
+              <Text style={styles.headerBtnText}>★</Text>
+            </Pressable>
+            <Pressable onPress={() => setIsMoreVisible(true)} style={styles.headerBtn}>
+              <Text style={styles.headerBtnText}>↗</Text>
+            </Pressable>
           </View>
         </View>
+
+        <View style={[styles.topMenuRow, { top: topInset + 62 }]}>
+          <Pressable
+            onPress={() => setActiveView({ type: 'footprint' })}
+            style={[
+              styles.menuItem,
+              activeView.type === 'footprint' ? styles.menuItemActive : styles.menuItemInactive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.menuItemText,
+                activeView.type === 'footprint' ? styles.menuItemTextActive : styles.menuItemTextInactive,
+              ]}
+            >
+              Footprint
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setActiveView({ type: 'date', dateKey: todayDateKey, title: 'Today' })}
+            style={[
+              styles.menuItem,
+              activeView.type === 'date' && activeView.dateKey === todayDateKey
+                ? styles.menuItemActive
+                : styles.menuItemInactive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.menuItemText,
+                activeView.type === 'date' && activeView.dateKey === todayDateKey
+                  ? styles.menuItemTextActive
+                  : styles.menuItemTextInactive,
+              ]}
+            >
+              Today
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setActiveView({ type: 'date', dateKey: yesterdayDateKey, title: 'Yesterday' })}
+            style={[
+              styles.menuItem,
+              activeView.type === 'date' && activeView.dateKey === yesterdayDateKey
+                ? styles.menuItemActive
+                : styles.menuItemInactive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.menuItemText,
+                activeView.type === 'date' && activeView.dateKey === yesterdayDateKey
+                  ? styles.menuItemTextActive
+                  : styles.menuItemTextInactive,
+              ]}
+            >
+              Yesterday
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setActiveView({ type: 'date', dateKey: twoDaysAgoDateKey, title: '2 days ago' })}
+            style={[
+              styles.menuItem,
+              activeView.type === 'date' && activeView.dateKey === twoDaysAgoDateKey
+                ? styles.menuItemActive
+                : styles.menuItemInactive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.menuItemText,
+                activeView.type === 'date' && activeView.dateKey === twoDaysAgoDateKey
+                  ? styles.menuItemTextActive
+                  : styles.menuItemTextInactive,
+              ]}
+            >
+              2 days ago
+            </Text>
+          </Pressable>
+        </View>
+
+        {displayedPoints.length === 0 ? (
+          <Text style={[styles.noPathText, { bottom: bottomInset + 155 }]}>
+            No path recorded for {viewLabel(activeView)}
+          </Text>
+        ) : null}
+
+        <LinearGradient
+          colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.50)', 'rgba(255,255,255,0.90)', 'rgba(255,255,255,0.97)']}
+          locations={[0, 0.65, 0.85, 1]}
+          style={[styles.bottomArea, { paddingBottom: bottomInset + 24 }]}
+        >
+          <RecordingControls isRecording={isRecording} onStart={startRecording} onStop={stopRecording} />
+        </LinearGradient>
       </View>
 
       <MoreDatesModal
@@ -126,81 +204,145 @@ export default function App(): JSX.Element {
         onClose={() => setIsMoreVisible(false)}
         olderDateKeys={olderDateKeys}
         activeView={activeView}
-        onSelectDate={openDateView}
+        onSelectDate={(dateKey, title) => setActiveView({ type: 'date', dateKey, title })}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  root: {
     flex: 1,
-    backgroundColor: '#050a12',
+    backgroundColor: '#ffffff',
   },
   screen: {
     flex: 1,
-    backgroundColor: '#050a12',
+    backgroundColor: '#ffffff',
   },
-  topShadePrimary: {
+  header: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: 140,
-    backgroundColor: 'rgba(29, 78, 117, 0.46)',
-  },
-  topShadeSecondary: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 260,
-    backgroundColor: 'rgba(15, 23, 42, 0.18)',
-  },
-  bottomShadePrimary: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 180,
-    backgroundColor: 'rgba(2, 6, 23, 0.52)',
-  },
-  bottomShadeSecondary: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 320,
-    backgroundColor: 'rgba(2, 6, 23, 0.20)',
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'space-between',
-    paddingTop: 54,
-    paddingBottom: 22,
-    paddingHorizontal: 18,
-  },
-  topBar: {
-    gap: 8,
-  },
-  brandRow: {
+    zIndex: 50,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 9,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
   },
-  brandIcon: {
-    color: '#f59e0b',
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  appIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: '#f97316',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  appIconArrow: {
+    color: '#ffffff',
     fontSize: 18,
     fontWeight: '700',
+    transform: [{ rotate: '-45deg' }],
   },
-  brandTitle: {
-    color: '#f1f5f9',
-    fontSize: 17,
+  appTitle: {
+    fontSize: 22,
     fontWeight: '700',
-    letterSpacing: 0.2,
+    color: '#1a1a1a',
   },
-  bottomBar: {
+  headerRight: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: 4,
+    gap: 10,
+  },
+  headerBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.86)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  headerBtnActive: {
+    backgroundColor: 'rgba(249, 115, 22, 0.20)',
+  },
+  headerBtnText: {
+    fontSize: 15,
+    color: '#555555',
+    fontWeight: '700',
+  },
+  topMenuRow: {
+    position: 'absolute',
+    left: 18,
+    right: 18,
+    zIndex: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  menuItem: {
+    minHeight: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  menuItemInactive: {
+    backgroundColor: 'transparent',
+    paddingHorizontal: 0,
+  },
+  menuItemActive: {
+    backgroundColor: '#f97316',
+    paddingHorizontal: 24,
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  menuItemText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  menuItemTextInactive: {
+    color: 'rgba(0,0,0,0.28)',
+  },
+  menuItemTextActive: {
+    color: '#ffffff',
+  },
+  noPathText: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    zIndex: 30,
+    color: 'rgba(0,0,0,0.25)',
+    fontSize: 14,
+    fontWeight: '500',
+    fontStyle: 'italic',
+  },
+  bottomArea: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 50,
+    paddingHorizontal: 24,
+    paddingTop: 70,
   },
 });

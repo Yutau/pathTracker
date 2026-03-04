@@ -21,25 +21,26 @@ export function MenuButton({ label, active, onPress }: MenuButtonProps): JSX.Ele
 const styles = StyleSheet.create({
   menuButton: {
     borderRadius: 999,
-    minHeight: 36,
-    paddingVertical: 7,
+    minHeight: 44,
+    paddingVertical: 10,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   menuButtonInactive: {
-    paddingHorizontal: 2,
+    paddingHorizontal: 0,
   },
   menuButtonActive: {
     backgroundColor: '#ff8a00',
-    paddingHorizontal: 18,
+    paddingHorizontal: 30,
     shadowColor: '#fb923c',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 7,
   },
   menuButtonText: {
-    color: 'rgba(241, 245, 249, 0.60)',
-    fontSize: 13,
+    color: 'rgba(241, 245, 249, 0.66)',
+    fontSize: 17,
     fontWeight: '600',
   },
   menuButtonTextActive: {

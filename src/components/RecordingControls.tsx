@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 type RecordingControlsProps = {
   isRecording: boolean;
@@ -11,14 +12,13 @@ export function RecordingControls({ isRecording, onStart, onStop }: RecordingCon
 
   return (
     <View style={styles.controlsWrap}>
-      <Pressable
-        onPress={onPressMain}
-        style={[styles.mainButton, isRecording && styles.mainButtonActiveRecording]}
-      >
-        <View style={styles.playCircle}>
-          <Text style={styles.playIcon}>{isRecording ? '■' : '▶'}</Text>
-        </View>
-        <Text style={styles.mainButtonText}>{isRecording ? 'Stop Recording' : 'Start Recording'}</Text>
+      <Pressable onPress={onPressMain} style={styles.mainButton} accessibilityRole="button">
+        <LinearGradient colors={['#f9a825', '#f97316', '#ea580c']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.mainButtonGradient}>
+          <View style={styles.playCircle}>
+            <Text style={styles.playIcon}>{isRecording ? '■' : '▶'}</Text>
+          </View>
+          <Text style={styles.mainButtonText}>{isRecording ? 'Stop Recording' : 'Start Recording'}</Text>
+        </LinearGradient>
       </Pressable>
     </View>
   );
@@ -26,48 +26,45 @@ export function RecordingControls({ isRecording, onStart, onStop }: RecordingCon
 
 const styles = StyleSheet.create({
   controlsWrap: {
-    alignItems: 'center',
+    width: '100%',
   },
   mainButton: {
-    minWidth: 260,
-    maxWidth: 380,
-    width: '78%',
-    borderRadius: 999,
-    paddingVertical: 15,
-    paddingHorizontal: 22,
-    backgroundColor: '#ff8a00',
+    width: '100%',
+    borderRadius: 28,
+    overflow: 'hidden',
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  mainButtonGradient: {
+    height: 56,
+    borderRadius: 28,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 9,
-    shadowColor: '#ff8a00',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.34,
-    shadowRadius: 15,
-    elevation: 9,
-  },
-  mainButtonActiveRecording: {
-    backgroundColor: '#dc2626',
-    shadowColor: '#dc2626',
+    gap: 10,
   },
   playCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.23)',
+    backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   playIcon: {
-    color: '#fff8ec',
+    color: '#ffffff',
     fontSize: 13,
     fontWeight: '700',
+    marginLeft: 2,
   },
   mainButtonText: {
-    color: '#fff8ec',
+    color: '#ffffff',
     fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 0.2,
+    fontWeight: '600',
+    letterSpacing: 0.3,
     includeFontPadding: false,
   },
 });

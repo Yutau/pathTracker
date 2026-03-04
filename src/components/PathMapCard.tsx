@@ -75,17 +75,17 @@ export function PathMapCard({
 const styles = StyleSheet.create({
   mapCard: {
     flex: 1,
-    backgroundColor: '#0b1220',
+    backgroundColor: '#ffffff',
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(2, 6, 23, 0.35)',
+    backgroundColor: 'rgba(255, 255, 255, 0.62)',
     gap: 10,
   },
   loadingText: {
-    color: '#f8fafc',
+    color: '#334155',
     fontWeight: '600',
   },
 });
