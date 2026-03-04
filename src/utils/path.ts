@@ -3,14 +3,25 @@ import type { LatLng } from 'react-native-maps';
 import { DATE_COLORS } from '../constants/path';
 import type { PathPoint } from '../types/path';
 
+/**
+ * Returns a new array sorted by timestamp ascending.
+ * We sort before drawing so polyline segments follow travel order.
+ */
 export function sortPointsChronological(points: PathPoint[]): PathPoint[] {
   return [...points].sort((a, b) => a.timestamp - b.timestamp);
 }
 
+/**
+ * Converts an internal point object into map coordinate format.
+ */
 export function toCoordinate(point: PathPoint): LatLng {
   return { latitude: point.latitude, longitude: point.longitude };
 }
 
+/**
+ * Maps a date key to a deterministic color index.
+ * This keeps a date's color stable across app sessions.
+ */
 export function hashColorByDate(dateKey: string): string {
   let hash = 0;
   for (let i = 0; i < dateKey.length; i += 1) {
@@ -19,6 +30,10 @@ export function hashColorByDate(dateKey: string): string {
   return DATE_COLORS[Math.abs(hash) % DATE_COLORS.length];
 }
 
+/**
+ * Great-circle distance using the Haversine formula.
+ * Result unit: kilometers.
+ */
 function haversineDistanceKm(start: PathPoint, end: PathPoint): number {
   const rad = Math.PI / 180;
   const lat1 = start.latitude * rad;
@@ -34,6 +49,9 @@ function haversineDistanceKm(start: PathPoint, end: PathPoint): number {
   return 6371 * c;
 }
 
+/**
+ * Accumulates travel distance over a chronologically ordered path.
+ */
 export function totalDistanceKm(points: PathPoint[]): number {
   if (points.length < 2) {
     return 0;
@@ -46,6 +64,10 @@ export function totalDistanceKm(points: PathPoint[]): number {
   return distance;
 }
 
+/**
+ * Defensive parser for persisted point arrays.
+ * Invalid records are ignored to keep corrupted storage from crashing the app.
+ */
 export function normalizeStoredPoints(raw: unknown): PathPoint[] {
   if (!Array.isArray(raw)) {
     return [];
@@ -62,6 +84,7 @@ export function normalizeStoredPoints(raw: unknown): PathPoint[] {
     const longitude = Number(candidate.longitude);
     const timestamp = Number(candidate.timestamp);
 
+    // Only accept fully numeric coordinates/time values.
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !Number.isFinite(timestamp)) {
       return;
     }
@@ -74,6 +97,7 @@ export function normalizeStoredPoints(raw: unknown): PathPoint[] {
       latitude,
       longitude,
       timestamp,
+      // Accuracy may be absent on some platforms/conditions.
       accuracy: Number.isFinite(Number(candidate.accuracy)) ? Number(candidate.accuracy) : null,
     });
   });

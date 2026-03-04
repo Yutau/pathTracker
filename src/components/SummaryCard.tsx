@@ -10,6 +10,10 @@ type SummaryCardProps = {
   statusMessage: string;
 };
 
+/**
+ * Compact route summary panel (currently optional in the latest UI).
+ * Keeps a quick overview of count, distance, last point time, and status.
+ */
 export function SummaryCard({
   viewTitle,
   displayedPoints,
@@ -21,6 +25,7 @@ export function SummaryCard({
       <Text style={styles.summaryTitle} numberOfLines={1}>
         {viewTitle}
       </Text>
+      {/* Empty state is shown when selected date has no points. */}
       {displayedPoints.length === 0 ? (
         <Text style={styles.summaryBody}>No recorded points for this view yet</Text>
       ) : (

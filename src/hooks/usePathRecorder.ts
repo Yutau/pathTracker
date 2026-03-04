@@ -17,6 +17,13 @@ type UsePathRecorderResult = {
   stopRecording: () => void;
 };
 
+/**
+ * Encapsulates the full recording lifecycle:
+ * - load/persist point history
+ * - request and track location permission
+ * - capture location on a fixed interval
+ * - expose simple start/stop controls to the UI
+ */
 export function usePathRecorder(): UsePathRecorderResult {
   const [points, setPoints] = useState<PathPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,6 +37,7 @@ export function usePathRecorder(): UsePathRecorderResult {
   useEffect(() => {
     let active = true;
 
+    // Load persisted points once on mount.
     const load = async (): Promise<void> => {
       try {
         const stored = await loadStoredPoints();
@@ -55,15 +63,18 @@ export function usePathRecorder(): UsePathRecorderResult {
   }, []);
 
   useEffect(() => {
+    // Skip persistence while initial hydration is in progress.
     if (isLoading) {
       return;
     }
 
+    // Persist every mutation so the app can recover state after restart.
     savePoints(points).catch(() => {
       setStatusMessage('Failed to save local history.');
     });
   }, [points, isLoading]);
 
+  // Requests permission lazily and memoizes granted state in local hook state.
   const ensureLocationPermission = useCallback(async (): Promise<boolean> => {
     if (permissionState === 'granted') {
       return true;
@@ -75,6 +86,10 @@ export function usePathRecorder(): UsePathRecorderResult {
     return granted;
   }, [permissionState]);
 
+  /**
+   * Captures one GPS sample and appends it to the path.
+   * The in-flight guard prevents overlapping location requests.
+   */
   const captureLocationPoint = useCallback(async (): Promise<void> => {
     if (captureInFlightRef.current) {
       return;
@@ -102,6 +117,7 @@ export function usePathRecorder(): UsePathRecorderResult {
         latitude: currentPosition.coords.latitude,
         longitude: currentPosition.coords.longitude,
         timestamp,
+        // Round to keep UI/debug output readable while preserving rough accuracy signal.
         accuracy:
           typeof coordinateAccuracy === 'number' && Number.isFinite(coordinateAccuracy)
             ? Math.round(coordinateAccuracy)
@@ -118,6 +134,7 @@ export function usePathRecorder(): UsePathRecorderResult {
   }, [ensureLocationPermission]);
 
   useEffect(() => {
+    // Clears active timer; shared between early returns and cleanup.
     const clearTicker = (): void => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -132,6 +149,7 @@ export function usePathRecorder(): UsePathRecorderResult {
 
     let cancelled = false;
 
+    // Starts recording loop: immediate capture + fixed interval captures.
     const startLoop = async (): Promise<void> => {
       const granted = await ensureLocationPermission();
       if (!granted) {
@@ -154,6 +172,7 @@ export function usePathRecorder(): UsePathRecorderResult {
       }
 
       intervalRef.current = setInterval(() => {
+        // Fire-and-forget; captureLocationPoint has internal in-flight protection.
         void captureLocationPoint();
       }, RECORD_INTERVAL_MS);
     };
@@ -167,10 +186,12 @@ export function usePathRecorder(): UsePathRecorderResult {
   }, [isRecording, ensureLocationPermission, captureLocationPoint]);
 
   const startRecording = (): void => {
+    // State transition only; effect above handles actual loop start.
     setIsRecording(true);
   };
 
   const stopRecording = (): void => {
+    // State transition only; effect cleanup clears timer.
     setIsRecording(false);
     setStatusMessage('Recording paused.');
   };

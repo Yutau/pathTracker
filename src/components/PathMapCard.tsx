@@ -12,6 +12,12 @@ type PathMapCardProps = {
   isLoading: boolean;
 };
 
+/**
+ * Full-screen map container responsible for:
+ * - camera fitting based on provided coordinates
+ * - rendering current polyline + start/end markers
+ * - optional loading overlay while persisted data is being restored
+ */
 export function PathMapCard({
   coordinates,
   lineColor,
@@ -21,10 +27,12 @@ export function PathMapCard({
   const mapRef = useRef<MapView | null>(null);
 
   useEffect(() => {
+    // No camera operation needed before coordinates exist.
     if (!mapRef.current || coordinates.length === 0) {
       return;
     }
 
+    // For one-point paths, center with a focused zoom window.
     if (coordinates.length === 1) {
       mapRef.current.animateToRegion(
         {
@@ -38,6 +46,7 @@ export function PathMapCard({
       return;
     }
 
+    // For multi-point paths, fit the whole route with UI-safe paddings.
     mapRef.current.fitToCoordinates(coordinates, {
       edgePadding: { top: 170, right: 34, bottom: 185, left: 34 },
       animated: true,
@@ -52,16 +61,20 @@ export function PathMapCard({
         initialRegion={DEFAULT_REGION}
         showsUserLocation={permissionGranted}
       >
+        {/* Draw route line only when at least two points exist. */}
         {coordinates.length > 1 ? (
           <Polyline coordinates={coordinates} strokeColor={lineColor} strokeWidth={5} />
         ) : null}
 
+        {/* First point marker helps user identify route origin. */}
         {coordinates.length > 0 ? <Marker coordinate={coordinates[0]} title="Start" /> : null}
+        {/* Last point marker represents latest known location in this view. */}
         {coordinates.length > 1 ? (
           <Marker coordinate={coordinates[coordinates.length - 1]} title="Latest" pinColor="#ef4444" />
         ) : null}
       </MapView>
 
+      {/* Data hydration overlay shown while initial storage load is running. */}
       {isLoading ? (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fb923c" />

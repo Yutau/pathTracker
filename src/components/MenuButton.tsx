@@ -6,9 +6,13 @@ type MenuButtonProps = {
   onPress: () => void;
 };
 
+/**
+ * Reusable pill-like tab button used by horizontal path menus.
+ */
 export function MenuButton({ label, active, onPress }: MenuButtonProps): JSX.Element {
   return (
     <Pressable
+      // Add a touch buffer so compact labels remain easy to tap.
       hitSlop={6}
       onPress={onPress}
       style={[styles.menuButton, active ? styles.menuButtonActive : styles.menuButtonInactive]}

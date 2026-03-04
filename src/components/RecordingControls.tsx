@@ -7,16 +7,23 @@ type RecordingControlsProps = {
   onStop: () => void;
 };
 
+/**
+ * Single primary call-to-action button.
+ * Keeps interaction simple: one button toggles between start and stop.
+ */
 export function RecordingControls({ isRecording, onStart, onStop }: RecordingControlsProps): JSX.Element {
+  // Toggle target action based on current recording state.
   const onPressMain = isRecording ? onStop : onStart;
 
   return (
     <View style={styles.controlsWrap}>
       <Pressable onPress={onPressMain} style={styles.mainButton} accessibilityRole="button">
+        {/* Gradient closely follows the design reference from the provided HTML. */}
         <LinearGradient colors={['#f9a825', '#f97316', '#ea580c']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.mainButtonGradient}>
           <View style={styles.playCircle}>
             <Text style={styles.playIcon}>{isRecording ? '■' : '▶'}</Text>
           </View>
+          {/* Button label reflects current action, not current state. */}
           <Text style={styles.mainButtonText}>{isRecording ? 'Stop Recording' : 'Start Recording'}</Text>
         </LinearGradient>
       </Pressable>

@@ -10,6 +10,9 @@ import type { ActiveView } from './src/types/path';
 import { dateKeyFromDate, dateKeyFromTimestamp, dayDifferenceFromToday, getDateByOffset } from './src/utils/date';
 import { hashColorByDate, sortPointsChronological, toCoordinate } from './src/utils/path';
 
+/**
+ * Label shown in the empty-state message for the current view mode.
+ */
 function viewLabel(activeView: ActiveView): string {
   if (activeView.type === 'footprint') {
     return 'Footprint';
@@ -26,15 +29,21 @@ function viewLabel(activeView: ActiveView): string {
 }
 
 export default function App(): JSX.Element {
+  // Manual safe-area approximation so the screen still renders edge-to-edge
+  // even when SafeAreaProvider is not explicitly wired in the root.
   const topInset = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 44;
   const bottomInset = Platform.OS === 'ios' ? 28 : 16;
+
+  // Resolve canonical keys for quick date tabs.
   const todayDate = getDateByOffset(0);
   const todayDateKey = dateKeyFromDate(todayDate);
   const yesterdayDateKey = dateKeyFromDate(getDateByOffset(1));
   const twoDaysAgoDateKey = dateKeyFromDate(getDateByOffset(2));
 
+  // Core recording state and controls come from the dedicated hook.
   const { points, isLoading, isRecording, permissionState, startRecording, stopRecording } = usePathRecorder();
 
+  // UI-local state: active timeline view and modal visibility.
   const [activeView, setActiveView] = useState<ActiveView>({
     type: 'date',
     dateKey: todayDateKey,
@@ -42,6 +51,7 @@ export default function App(): JSX.Element {
   });
   const [isMoreVisible, setIsMoreVisible] = useState(false);
 
+  // Build a sorted set of all day keys that exist in stored points.
   const allDateKeys = useMemo(() => {
     const unique = new Set<string>();
     points.forEach((point) => {
@@ -50,11 +60,13 @@ export default function App(): JSX.Element {
     return Array.from(unique).sort((a, b) => (a > b ? -1 : 1));
   }, [points]);
 
+  // "More" modal only shows days older than quick tabs (older than 3 days).
   const olderDateKeys = useMemo(
     () => allDateKeys.filter((dateKey) => dayDifferenceFromToday(dateKey) > 3),
     [allDateKeys],
   );
 
+  // Select points according to current active view.
   const displayedPoints = useMemo(() => {
     const sorted = sortPointsChronological(points);
     if (activeView.type === 'footprint') {
@@ -64,7 +76,10 @@ export default function App(): JSX.Element {
     return sorted.filter((point) => dateKeyFromTimestamp(point.timestamp) === activeView.dateKey);
   }, [points, activeView]);
 
+  // Map components consume LatLng coordinates, not internal PathPoint objects.
   const coordinates = useMemo(() => displayedPoints.map(toCoordinate), [displayedPoints]);
+
+  // Keep all-history in one color and day-specific routes in deterministic colors.
   const lineColor = activeView.type === 'footprint' ? '#16a34a' : hashColorByDate(activeView.dateKey);
 
   return (
@@ -72,6 +87,7 @@ export default function App(): JSX.Element {
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <View style={styles.screen}>
+        {/* Full-screen map layer */}
         <PathMapCard
           coordinates={coordinates}
           lineColor={lineColor}
@@ -79,6 +95,7 @@ export default function App(): JSX.Element {
           isLoading={isLoading}
         />
 
+        {/* Floating top app bar */}
         <View style={[styles.header, { paddingTop: topInset + 16 }]}>
           <View style={styles.headerLeft}>
             <View style={styles.appIcon}>
@@ -102,6 +119,8 @@ export default function App(): JSX.Element {
           </View>
         </View>
 
+        {/* Primary quick switch row requested by product:
+            Footprint / Today / Yesterday / 2 days ago */}
         <View style={[styles.topMenuRow, { top: topInset + 62 }]}>
           <Pressable
             onPress={() => setActiveView({ type: 'footprint' })}
@@ -184,12 +203,14 @@ export default function App(): JSX.Element {
           </Pressable>
         </View>
 
+        {/* Context-aware empty state when selected view has no points. */}
         {displayedPoints.length === 0 ? (
           <Text style={[styles.noPathText, { bottom: bottomInset + 155 }]}>
             No path recorded for {viewLabel(activeView)}
           </Text>
         ) : null}
 
+        {/* Bottom gradient action area copied from the HTML design language. */}
         <LinearGradient
           colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.50)', 'rgba(255,255,255,0.90)', 'rgba(255,255,255,0.97)']}
           locations={[0, 0.65, 0.85, 1]}
@@ -199,6 +220,7 @@ export default function App(): JSX.Element {
         </LinearGradient>
       </View>
 
+      {/* Modal entry point for dates older than quick tabs. */}
       <MoreDatesModal
         visible={isMoreVisible}
         onClose={() => setIsMoreVisible(false)}

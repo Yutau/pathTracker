@@ -11,6 +11,9 @@ type MoreDatesModalProps = {
   onSelectDate: (dateKey: string, title: string) => void;
 };
 
+/**
+ * Bottom-sheet modal for selecting dates older than the quick tab range.
+ */
 export function MoreDatesModal({
   visible,
   onClose,
@@ -21,6 +24,7 @@ export function MoreDatesModal({
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.modalRoot}>
+        {/* Backdrop closes the modal on tap outside the sheet. */}
         <Pressable style={styles.modalBackdrop} onPress={onClose} />
         <View style={styles.modalSheet}>
           <Text style={styles.modalTitle}>Older Paths (More)</Text>
@@ -31,6 +35,7 @@ export function MoreDatesModal({
               data={olderDateKeys}
               keyExtractor={(item) => item}
               renderItem={({ item }) => {
+                // Highlight currently selected date for orientation.
                 const isActive = activeView.type === 'date' && activeView.dateKey === item;
                 return (
                   <Pressable

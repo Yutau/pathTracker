@@ -13,6 +13,10 @@ type PathMenuProps = {
   onPressMore: () => void;
 };
 
+/**
+ * Horizontal quick-access menu:
+ * Footprint + Today + recent dates + optional More entry.
+ */
 export function PathMenu({
   activeView,
   todayDateKey,
@@ -46,6 +50,7 @@ export function PathMenu({
         />
       ))}
 
+      {/* "More" appears only when there are older days beyond the quick range. */}
       {olderDateCount > 0 ? <MenuButton label="More" active={false} onPress={onPressMore} /> : null}
     </ScrollView>
   );
