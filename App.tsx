@@ -1,5 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Platform, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { MoreDatesModal } from './src/components/MoreDatesModal';
@@ -7,8 +14,17 @@ import { PathMapCard } from './src/components/PathMapCard';
 import { RecordingControls } from './src/components/RecordingControls';
 import { usePathRecorder } from './src/hooks/usePathRecorder';
 import type { ActiveView } from './src/types/path';
-import { dateKeyFromDate, dateKeyFromTimestamp, dayDifferenceFromToday, getDateByOffset } from './src/utils/date';
-import { hashColorByDate, sortPointsChronological, toCoordinate } from './src/utils/path';
+import {
+  dateKeyFromDate,
+  dateKeyFromTimestamp,
+  dayDifferenceFromToday,
+  getDateByOffset,
+} from './src/utils/date';
+import {
+  hashColorByDate,
+  sortPointsChronological,
+  toCoordinate,
+} from './src/utils/path';
 
 /**
  * Label shown in the empty-state message for the current view mode.
@@ -31,7 +47,8 @@ function viewLabel(activeView: ActiveView): string {
 export default function App(): JSX.Element {
   // Manual safe-area approximation so the screen still renders edge-to-edge
   // even when SafeAreaProvider is not explicitly wired in the root.
-  const topInset = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 44;
+  const topInset =
+    Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 44;
   const bottomInset = Platform.OS === 'ios' ? 28 : 16;
 
   // Resolve canonical keys for quick date tabs.
@@ -41,7 +58,14 @@ export default function App(): JSX.Element {
   const twoDaysAgoDateKey = dateKeyFromDate(getDateByOffset(2));
 
   // Core recording state and controls come from the dedicated hook.
-  const { points, isLoading, isRecording, permissionState, startRecording, stopRecording } = usePathRecorder();
+  const {
+    points,
+    isLoading,
+    isRecording,
+    permissionState,
+    startRecording,
+    stopRecording,
+  } = usePathRecorder();
 
   // UI-local state: active timeline view and modal visibility.
   const [activeView, setActiveView] = useState<ActiveView>({
@@ -73,18 +97,30 @@ export default function App(): JSX.Element {
       return sorted;
     }
 
-    return sorted.filter((point) => dateKeyFromTimestamp(point.timestamp) === activeView.dateKey);
+    return sorted.filter(
+      (point) => dateKeyFromTimestamp(point.timestamp) === activeView.dateKey,
+    );
   }, [points, activeView]);
 
   // Map components consume LatLng coordinates, not internal PathPoint objects.
-  const coordinates = useMemo(() => displayedPoints.map(toCoordinate), [displayedPoints]);
+  const coordinates = useMemo(
+    () => displayedPoints.map(toCoordinate),
+    [displayedPoints],
+  );
 
   // Keep all-history in one color and day-specific routes in deterministic colors.
-  const lineColor = activeView.type === 'footprint' ? '#16a34a' : hashColorByDate(activeView.dateKey);
+  const lineColor =
+    activeView.type === 'footprint'
+      ? '#16a34a'
+      : hashColorByDate(activeView.dateKey);
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="transparent"
+        translucent
+      />
 
       <View style={styles.screen}>
         {/* Full-screen map layer */}
@@ -108,12 +144,17 @@ export default function App(): JSX.Element {
               onPress={() => setActiveView({ type: 'footprint' })}
               style={[
                 styles.headerBtn,
-                activeView.type === 'footprint' ? styles.headerBtnActive : undefined,
+                activeView.type === 'footprint'
+                  ? styles.headerBtnActive
+                  : undefined,
               ]}
             >
               <Text style={styles.headerBtnText}>★</Text>
             </Pressable>
-            <Pressable onPress={() => setIsMoreVisible(true)} style={styles.headerBtn}>
+            <Pressable
+              onPress={() => setIsMoreVisible(true)}
+              style={styles.headerBtn}
+            >
               <Text style={styles.headerBtnText}>↗</Text>
             </Pressable>
           </View>
@@ -126,13 +167,17 @@ export default function App(): JSX.Element {
             onPress={() => setActiveView({ type: 'footprint' })}
             style={[
               styles.menuItem,
-              activeView.type === 'footprint' ? styles.menuItemActive : styles.menuItemInactive,
+              activeView.type === 'footprint'
+                ? styles.menuItemActive
+                : styles.menuItemInactive,
             ]}
           >
             <Text
               style={[
                 styles.menuItemText,
-                activeView.type === 'footprint' ? styles.menuItemTextActive : styles.menuItemTextInactive,
+                activeView.type === 'footprint'
+                  ? styles.menuItemTextActive
+                  : styles.menuItemTextInactive,
               ]}
             >
               Footprint
@@ -140,7 +185,13 @@ export default function App(): JSX.Element {
           </Pressable>
 
           <Pressable
-            onPress={() => setActiveView({ type: 'date', dateKey: todayDateKey, title: 'Today' })}
+            onPress={() =>
+              setActiveView({
+                type: 'date',
+                dateKey: todayDateKey,
+                title: 'Today',
+              })
+            }
             style={[
               styles.menuItem,
               activeView.type === 'date' && activeView.dateKey === todayDateKey
@@ -151,7 +202,8 @@ export default function App(): JSX.Element {
             <Text
               style={[
                 styles.menuItemText,
-                activeView.type === 'date' && activeView.dateKey === todayDateKey
+                activeView.type === 'date' &&
+                activeView.dateKey === todayDateKey
                   ? styles.menuItemTextActive
                   : styles.menuItemTextInactive,
               ]}
@@ -161,10 +213,17 @@ export default function App(): JSX.Element {
           </Pressable>
 
           <Pressable
-            onPress={() => setActiveView({ type: 'date', dateKey: yesterdayDateKey, title: 'Yesterday' })}
+            onPress={() =>
+              setActiveView({
+                type: 'date',
+                dateKey: yesterdayDateKey,
+                title: 'Yesterday',
+              })
+            }
             style={[
               styles.menuItem,
-              activeView.type === 'date' && activeView.dateKey === yesterdayDateKey
+              activeView.type === 'date' &&
+              activeView.dateKey === yesterdayDateKey
                 ? styles.menuItemActive
                 : styles.menuItemInactive,
             ]}
@@ -172,7 +231,8 @@ export default function App(): JSX.Element {
             <Text
               style={[
                 styles.menuItemText,
-                activeView.type === 'date' && activeView.dateKey === yesterdayDateKey
+                activeView.type === 'date' &&
+                activeView.dateKey === yesterdayDateKey
                   ? styles.menuItemTextActive
                   : styles.menuItemTextInactive,
               ]}
@@ -182,10 +242,17 @@ export default function App(): JSX.Element {
           </Pressable>
 
           <Pressable
-            onPress={() => setActiveView({ type: 'date', dateKey: twoDaysAgoDateKey, title: '2 days ago' })}
+            onPress={() =>
+              setActiveView({
+                type: 'date',
+                dateKey: twoDaysAgoDateKey,
+                title: '2 days ago',
+              })
+            }
             style={[
               styles.menuItem,
-              activeView.type === 'date' && activeView.dateKey === twoDaysAgoDateKey
+              activeView.type === 'date' &&
+              activeView.dateKey === twoDaysAgoDateKey
                 ? styles.menuItemActive
                 : styles.menuItemInactive,
             ]}
@@ -193,7 +260,8 @@ export default function App(): JSX.Element {
             <Text
               style={[
                 styles.menuItemText,
-                activeView.type === 'date' && activeView.dateKey === twoDaysAgoDateKey
+                activeView.type === 'date' &&
+                activeView.dateKey === twoDaysAgoDateKey
                   ? styles.menuItemTextActive
                   : styles.menuItemTextInactive,
               ]}
@@ -212,11 +280,21 @@ export default function App(): JSX.Element {
 
         {/* Bottom gradient action area copied from the HTML design language. */}
         <LinearGradient
-          colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.50)', 'rgba(255,255,255,0.90)', 'rgba(255,255,255,0.97)']}
-          locations={[0, 0.65, 0.85, 1]}
+          colors={[
+            'rgba(255,255,255,0)',
+            'rgba(255,255,255,0.35)',
+            'rgba(255,255,255,0.70)',
+            'rgba(255,255,255,0.92)',
+            'rgba(255,255,255,0.98)',
+          ]}
+          locations={[0, 0.3, 0.55, 0.78, 1]}
           style={[styles.bottomArea, { paddingBottom: bottomInset + 24 }]}
         >
-          <RecordingControls isRecording={isRecording} onStart={startRecording} onStop={stopRecording} />
+          <RecordingControls
+            isRecording={isRecording}
+            onStart={startRecording}
+            onStop={stopRecording}
+          />
         </LinearGradient>
       </View>
 
@@ -226,7 +304,9 @@ export default function App(): JSX.Element {
         onClose={() => setIsMoreVisible(false)}
         olderDateKeys={olderDateKeys}
         activeView={activeView}
-        onSelectDate={(dateKey, title) => setActiveView({ type: 'date', dateKey, title })}
+        onSelectDate={(dateKey, title) =>
+          setActiveView({ type: 'date', dateKey, title })
+        }
       />
     </View>
   );
@@ -365,6 +445,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 50,
     paddingHorizontal: 24,
-    paddingTop: 70,
+    paddingTop: 140,
   },
 });
