@@ -6,9 +6,26 @@ export const STORAGE_KEY = 'path_tracker_points_v1';
 
 /**
  * The intended capture cadence for automatic recording.
- * 20 seconds is a practical balance between detail and battery usage.
+ * Product requirement: collect a point every 4 seconds.
  */
-export const RECORD_INTERVAL_MS = 20_000;
+export const RECORD_INTERVAL_MS = 4_000;
+
+/**
+ * Unified theme color used by date-specific route lines.
+ * Keep this centralized so future customization only needs one integration point.
+ */
+export const ROUTE_THEME_COLOR = '#f97316';
+
+/**
+ * Default color for footprint point cloud rendering.
+ */
+export const FOOTPRINT_POINT_COLOR = '#f97316';
+
+/**
+ * Foreground/background dedupe thresholds to avoid double-writing near-identical points.
+ */
+export const POINT_DEDUPE_TIME_WINDOW_MS = 2_000;
+export const POINT_DEDUPE_DISTANCE_METERS = 5;
 
 /**
  * Milliseconds in one day, used for date-difference calculations.

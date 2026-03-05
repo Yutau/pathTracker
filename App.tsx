@@ -13,7 +13,7 @@ import { MoreDatesModal } from './src/components/MoreDatesModal';
 import { PathMapCard } from './src/components/PathMapCard';
 import { RecordingControls } from './src/components/RecordingControls';
 import { usePathRecorder } from './src/hooks/usePathRecorder';
-import type { ActiveView } from './src/types/path';
+import type { ActiveView, PathRenderMode } from './src/types/path';
 import {
   dateKeyFromDate,
   dateKeyFromTimestamp,
@@ -21,7 +21,7 @@ import {
   getDateByOffset,
 } from './src/utils/date';
 import {
-  hashColorByDate,
+  getPathThemeColor,
   sortPointsChronological,
   toCoordinate,
 } from './src/utils/path';
@@ -63,6 +63,7 @@ export default function App(): JSX.Element {
     isLoading,
     isRecording,
     permissionState,
+    statusMessage,
     startRecording,
     stopRecording,
   } = usePathRecorder();
@@ -108,11 +109,13 @@ export default function App(): JSX.Element {
     [displayedPoints],
   );
 
-  // Keep all-history in one color and day-specific routes in deterministic colors.
-  const lineColor =
-    activeView.type === 'footprint'
-      ? '#16a34a'
-      : hashColorByDate(activeView.dateKey);
+  // Rendering behavior is product-driven:
+  // - footprint => show all points only
+  // - date view => show route line
+  const mapMode: PathRenderMode =
+    activeView.type === 'footprint' ? 'footprint-points' : 'date-route';
+  const routeColor = getPathThemeColor('date-route');
+  const pointColor = getPathThemeColor('footprint-points');
 
   return (
     <View style={styles.root}>
@@ -126,7 +129,9 @@ export default function App(): JSX.Element {
         {/* Full-screen map layer */}
         <PathMapCard
           coordinates={coordinates}
-          lineColor={lineColor}
+          mode={mapMode}
+          routeColor={routeColor}
+          pointColor={pointColor}
           permissionGranted={permissionState === 'granted'}
           isLoading={isLoading}
         />
@@ -290,6 +295,9 @@ export default function App(): JSX.Element {
           locations={[0, 0.3, 0.55, 0.78, 1]}
           style={[styles.bottomArea, { paddingBottom: bottomInset + 24 }]}
         >
+          <Text style={styles.statusText} numberOfLines={2}>
+            {statusMessage}
+          </Text>
           <RecordingControls
             isRecording={isRecording}
             onStart={startRecording}
@@ -446,5 +454,12 @@ const styles = StyleSheet.create({
     zIndex: 50,
     paddingHorizontal: 24,
     paddingTop: 140,
+  },
+  statusText: {
+    marginBottom: 10,
+    color: 'rgba(15,23,42,0.78)',
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });

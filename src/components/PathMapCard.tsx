@@ -3,11 +3,14 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import type { LatLng } from 'react-native-maps';
 
-import { DEFAULT_REGION } from '../constants/path';
+import { DEFAULT_REGION, FOOTPRINT_POINT_COLOR, ROUTE_THEME_COLOR } from '../constants/path';
+import type { PathRenderMode } from '../types/path';
 
 type PathMapCardProps = {
   coordinates: LatLng[];
-  lineColor: string;
+  mode: PathRenderMode;
+  routeColor?: string;
+  pointColor?: string;
   permissionGranted: boolean;
   isLoading: boolean;
 };
@@ -20,11 +23,15 @@ type PathMapCardProps = {
  */
 export function PathMapCard({
   coordinates,
-  lineColor,
+  mode,
+  routeColor,
+  pointColor,
   permissionGranted,
   isLoading,
 }: PathMapCardProps): JSX.Element {
   const mapRef = useRef<MapView | null>(null);
+  const resolvedRouteColor = routeColor ?? ROUTE_THEME_COLOR;
+  const resolvedPointColor = pointColor ?? FOOTPRINT_POINT_COLOR;
 
   useEffect(() => {
     // No camera operation needed before coordinates exist.
@@ -61,15 +68,30 @@ export function PathMapCard({
         initialRegion={DEFAULT_REGION}
         showsUserLocation={permissionGranted}
       >
-        {/* Draw route line only when at least two points exist. */}
-        {coordinates.length > 1 ? (
-          <Polyline coordinates={coordinates} strokeColor={lineColor} strokeWidth={5} />
+        {/* Date mode renders one day's route as a connected polyline. */}
+        {mode === 'date-route' && coordinates.length > 1 ? (
+          <Polyline coordinates={coordinates} strokeColor={resolvedRouteColor} strokeWidth={5} />
         ) : null}
 
-        {/* First point marker helps user identify route origin. */}
-        {coordinates.length > 0 ? <Marker coordinate={coordinates[0]} title="Start" /> : null}
-        {/* Last point marker represents latest known location in this view. */}
-        {coordinates.length > 1 ? (
+        {/* Footprint mode renders all points as a point cloud without connecting lines. */}
+        {mode === 'footprint-points'
+          ? coordinates.map((coordinate, index) => (
+              <Marker
+                key={`${coordinate.latitude}-${coordinate.longitude}-${index}`}
+                coordinate={coordinate}
+                tracksViewChanges={false}
+                anchor={{ x: 0.5, y: 0.5 }}
+              >
+                <View style={[styles.footprintPoint, { backgroundColor: resolvedPointColor }]} />
+              </Marker>
+            ))
+          : null}
+
+        {/* Date mode keeps start/end markers to quickly communicate direction. */}
+        {mode === 'date-route' && coordinates.length > 0 ? (
+          <Marker coordinate={coordinates[0]} title="Start" />
+        ) : null}
+        {mode === 'date-route' && coordinates.length > 1 ? (
           <Marker coordinate={coordinates[coordinates.length - 1]} title="Latest" pinColor="#ef4444" />
         ) : null}
       </MapView>
@@ -100,5 +122,12 @@ const styles = StyleSheet.create({
   loadingText: {
     color: '#334155',
     fontWeight: '600',
+  },
+  footprintPoint: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.75)',
   },
 });

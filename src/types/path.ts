@@ -21,6 +21,13 @@ export type ActiveView =
   | { type: 'date'; dateKey: string; title: string };
 
 /**
+ * Map rendering mode:
+ * - footprint-points: show all points as a point cloud
+ * - date-route: connect one day's points as a route line
+ */
+export type PathRenderMode = 'footprint-points' | 'date-route';
+
+/**
  * Foreground location authorization state used by the recording hook.
  */
 export type PermissionState = 'unknown' | 'granted' | 'denied';

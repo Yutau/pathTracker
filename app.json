@@ -16,20 +16,30 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow Path Tracker to record your movement path."
+          "locationWhenInUsePermission": "Allow Path Tracker to record your movement path while you use the app.",
+          "locationAlwaysAndWhenInUsePermission": "Allow Path Tracker to keep recording your path in the background.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ]
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.pathtracker"
+      "bundleIdentifier": "com.anonymous.pathtracker",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "location"
+        ]
+      }
     },
     "android": {
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
       ],
       "package": "com.anonymous.pathtracker"
     }

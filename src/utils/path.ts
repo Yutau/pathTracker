@@ -1,7 +1,11 @@
 import type { LatLng } from 'react-native-maps';
 
-import { DATE_COLORS } from '../constants/path';
-import type { PathPoint } from '../types/path';
+import {
+  DATE_COLORS,
+  FOOTPRINT_POINT_COLOR,
+  ROUTE_THEME_COLOR,
+} from '../constants/path';
+import type { PathPoint, PathRenderMode } from '../types/path';
 
 /**
  * Returns a new array sorted by timestamp ascending.
@@ -31,10 +35,32 @@ export function hashColorByDate(dateKey: string): string {
 }
 
 /**
+ * Optional color overrides that allow external configuration in the future.
+ */
+export type RouteColorOverrides = {
+  dateRouteColor?: string;
+  footprintPointColor?: string;
+};
+
+/**
+ * Centralized route/point color resolver.
+ * Current behavior is theme-based, but callers can inject overrides later.
+ */
+export function getPathThemeColor(
+  mode: PathRenderMode,
+  overrides?: RouteColorOverrides,
+): string {
+  if (mode === 'date-route') {
+    return overrides?.dateRouteColor ?? ROUTE_THEME_COLOR;
+  }
+  return overrides?.footprintPointColor ?? FOOTPRINT_POINT_COLOR;
+}
+
+/**
  * Great-circle distance using the Haversine formula.
  * Result unit: kilometers.
  */
-function haversineDistanceKm(start: PathPoint, end: PathPoint): number {
+export function distanceBetweenPointsKm(start: PathPoint, end: PathPoint): number {
   const rad = Math.PI / 180;
   const lat1 = start.latitude * rad;
   const lat2 = end.latitude * rad;
@@ -59,7 +85,7 @@ export function totalDistanceKm(points: PathPoint[]): number {
 
   let distance = 0;
   for (let i = 1; i < points.length; i += 1) {
-    distance += haversineDistanceKm(points[i - 1], points[i]);
+    distance += distanceBetweenPointsKm(points[i - 1], points[i]);
   }
   return distance;
 }

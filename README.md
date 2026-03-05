@@ -5,27 +5,30 @@ A cross-platform (iOS + Android) path recording app built with React Native + Ex
 ## Features Implemented
 
 1. Menu structure
-- `Footprint`: shows all historical paths.
+- `Footprint`: shows all historical points.
 - `Today`: shows only today's path.
-- Previous 3 days: `Yesterday`, `Day Before Yesterday`, and `3 Days Ago` with date labels.
+- Quick tabs: `Yesterday` and `2 days ago`.
 - `More`: opens a modal list for dates older than 3 days.
 
 2. Automatic path recording
 - Start recording with `Start Recording`.
-- Captures one location point every ~20 seconds.
-- Points are saved to local storage (`AsyncStorage`) and rendered on the map.
+- Captures one location point every ~4 seconds.
+- Uses foreground capture + background location task (best effort).
+- Points are saved to local storage (`AsyncStorage`) with dedupe and rendered on the map.
 
 3. Footprint behavior
-- In `Footprint`, all points are sorted by timestamp and connected as one continuous colored line.
+- In `Footprint`, all historical points are shown as a point cloud (no line).
 
 4. Date-specific behavior
-- In `Today` or any date tab, only that day’s points are shown independently.
+- In `Today` or any date tab, only that day’s points are shown and connected as a route line.
+- Date route color is theme orange by default, with a reserved override entry point for future customization.
 
 ## Tech Stack
 
 - React Native (Expo)
 - `react-native-maps` (map + polyline + markers)
 - `expo-location` (GPS)
+- `expo-task-manager` (background location task)
 - `@react-native-async-storage/async-storage` (local persistence)
 
 ## Run
@@ -64,5 +67,4 @@ Fast Refresh checklist:
 ## Notes
 
 - Location permission is required for recording.
-- The current implementation records in foreground while the app is active.
-- For background tracking, add task manager + background location workflow.
+- Background recording is best effort due OS policy (especially after force-kill).
